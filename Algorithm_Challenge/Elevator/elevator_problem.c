@@ -48,7 +48,7 @@ static int8_t setNextElevatorStop(struct building_s building)
 {
 	return 0;
 }
-
+int time = 0;
 
 //****************************************************************************
 //YOU CAN REVIEW THE CODE BELOW BUT DO NOT EDIT IT UNLESS YOU'RE 3000% SURE 

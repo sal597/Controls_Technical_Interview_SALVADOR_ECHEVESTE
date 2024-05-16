@@ -2,10 +2,10 @@
 	[Project] Controls Technical Interview
 *****************************************************************************
 	[Lead developer] Rachel Harris, rharris at dephy dot com.
-	[Contributors] 
+	[Contributors]
 *****************************************************************************
-	[This file] elevator_problem: Moves an elevator through a building to get 
-	people to the correct floor in the least amount of time. 
+	[This file] elevator_problem: Moves an elevator through a building to get
+	people to the correct floor in the least amount of time.
 ****************************************************************************
 	[Created] 2022-11-07 | rharris | Initial creation
 ****************************************************************************/
@@ -29,8 +29,8 @@ struct building_s myBuilding;
 //****************************************************************************
 static void initBuilding(void);
 static int8_t setNextElevatorStop(struct building_s building);
-static void moveElevator(struct elevator_s * elevator);
-static void stopElevator(struct building_s * building);
+static void moveElevator(struct elevator_s* elevator);
+static void stopElevator(struct building_s* building);
 static void drawBuilding(struct building_s building, int8_t door_status);
 static void drawFloor(struct floor_s floor, int8_t floorNumber, struct elevator_s elevator, int8_t doorStatus);
 static void drawElevator(struct elevator_s elevator, int8_t doorStatus);
@@ -44,11 +44,87 @@ static void delay(int16_t ms);
 //To stop at a floor means to open the doors and let passengers on and off. It 
 //is possible to pass through a floor without stopping there.
 //Note: The output should be a number between 0 and (BUILDING_HEIGHT-1), inclusive
+// Returns the floor the elevator should STOP at next
+
 static int8_t setNextElevatorStop(struct building_s building)
 {
-	return 0;
+	struct elevator_s* elevator = &building.elevator;
+	int8_t currentFloor = building.elevator.currentFloor;
+	int8_t direction = building.elevator.nextStop - currentFloor > 0 ? 1 : -1;
+
+	//int8_t currentFloor = elevator->currentFloor;
+	//int8_t direction = (elevator->nextStop >= currentFloor) ? 1 : -1; // 1 for up, -1 for down
+	int isFull = 1;
+
+	// Check if elevator full
+	for (int i = 0; i < ELEVATOR_MAX_CAPACITY; i++) {
+		if (elevator->passengers[i] == -1) {
+			isFull = 0;
+			break;
+		}
+	}
+
+	// Check if the elevator should stop at given floor
+	int shouldStopAtFloor(int floor) {
+		if (!isFull && (building.floors[floor].departures[0] != -1 || building.floors[floor].departures[1] != -1)) {
+			return 1;
+		}
+		for (int j = 0; j < ELEVATOR_MAX_CAPACITY; j++) {
+			if (elevator->passengers[j] == floor) {
+				return 1;
+			}
+		}
+		return 0;
+	}
+
+	// Simulation scans to check if direction change applicable:
+	//Current direction
+	if (direction == 1) {
+		for (int i = currentFloor + 1; i < BUILDING_HEIGHT; i++) {
+			if (shouldStopAtFloor(i)) {
+				return i;
+			}
+		}
+		// Change direction to down if top floor is reached
+		direction = -1;
+	}
+
+	//Opposite direction
+	if (direction == -1) {
+		for (int i = currentFloor - 1; i >= 0; i--) {
+			if (shouldStopAtFloor(i)) {
+				return i;
+			}
+		}
+		// Change direction to up if bottom floor is reached
+		direction = 1;
+	}
+
+
+	// Execute real scan:
+	//Same
+	if (direction == 1) {
+		for (int i = currentFloor + 1; i < BUILDING_HEIGHT; i++) {
+			if (shouldStopAtFloor(i)) {
+				return i;
+			}
+		}
+	}
+	//Reverse
+	else {
+		for (int i = currentFloor - 1; i >= 0; i--) {
+			if (shouldStopAtFloor(i)) {
+				return i;
+			}
+		}
+	}
+
+
+	// No valid stops are found ==> return the current floor
+	return currentFloor;
 }
-int time = 0;
+
+
 
 //****************************************************************************
 //YOU CAN REVIEW THE CODE BELOW BUT DO NOT EDIT IT UNLESS YOU'RE 3000% SURE 
@@ -71,12 +147,12 @@ void main(void)
 
 	//Draw the initial state of the building, with elevator doors closed
 	system("clear");
-	drawBuilding(myBuilding,1);
+	drawBuilding(myBuilding, 1);
 	fflush(stdout);
 	delay(1000);
 
 	//Run the elevator for a set period of time
-	for(int8_t i = 0; i < 60; i++)
+	for (int8_t i = 0; i < 60; i++)
 	{
 		//Choose the next floor to stop at
 		myBuilding.elevator.nextStop = setNextElevatorStop(myBuilding);
@@ -86,16 +162,16 @@ void main(void)
 
 		//Draw the building, with elevator doors closed
 		system("clear");
-		drawBuilding(myBuilding,1);
+		drawBuilding(myBuilding, 1);
 		fflush(stdout);
 		delay(1000);
 
 		//If necessary, stop the elevator to let people on/off
-		if(myBuilding.elevator.currentFloor == myBuilding.elevator.nextStop)
+		if (myBuilding.elevator.currentFloor == myBuilding.elevator.nextStop)
 		{
 			//Redraw the building, with elevator doors open
 			system("clear");
-			drawBuilding(myBuilding,0);
+			drawBuilding(myBuilding, 0);
 			fflush(stdout);
 			delay(1000);
 			i++;
@@ -105,14 +181,14 @@ void main(void)
 
 			//Redraw the building, with elevator doors open, showing the change
 			system("clear");
-			drawBuilding(myBuilding,0);
+			drawBuilding(myBuilding, 0);
 			fflush(stdout);
 			delay(1000);
 			i++;
 
 			//Redraw the building, with elevator doors closed
 			system("clear");
-			drawBuilding(myBuilding,1);
+			drawBuilding(myBuilding, 1);
 			fflush(stdout);
 			delay(1000);
 			i++;
@@ -120,12 +196,12 @@ void main(void)
 
 		//Check if all people have been taken to their correct floors
 		int8_t numPeopleAtDestination = 0;
-		for(int8_t f = 0; f < BUILDING_HEIGHT; f++)
+		for (int8_t f = 0; f < BUILDING_HEIGHT; f++)
 		{
 			numPeopleAtDestination += myBuilding.floors[f].arrivals;
 		}
 
-		if(numPeopleAtDestination == 10)
+		if (numPeopleAtDestination == 10)
 		{
 			printf("SUCCESS: You got all the people through! The total time was: %i seconds!\n", i);
 			return;
@@ -134,7 +210,7 @@ void main(void)
 
 	//If the animation time's out, let them know their score.
 	int8_t numPeopleAtDestination = 0;
-	for(int8_t f = 0; f < BUILDING_HEIGHT; f++)
+	for (int8_t f = 0; f < BUILDING_HEIGHT; f++)
 	{
 		numPeopleAtDestination += myBuilding.floors[f].arrivals;
 	}
@@ -151,12 +227,12 @@ static void initBuilding(void)
 	myBuilding.elevator.currentFloor = rand() % BUILDING_HEIGHT;
 	myBuilding.elevator.nextStop = myBuilding.elevator.currentFloor;
 
-	for(int8_t f = 0; f < BUILDING_HEIGHT; f++)
+	for (int8_t f = 0; f < BUILDING_HEIGHT; f++)
 	{
-		for(int8_t j = 0; j < 2; j++)
+		for (int8_t j = 0; j < 2; j++)
 		{
 			int destination = rand() % BUILDING_HEIGHT;
-			while(destination == f)
+			while (destination == f)
 			{
 				destination = rand() % BUILDING_HEIGHT;
 			}
@@ -166,24 +242,24 @@ static void initBuilding(void)
 	}
 }
 
-static void moveElevator(struct elevator_s * elevator)
+static void moveElevator(struct elevator_s* elevator)
 {
-	if(elevator->nextStop < elevator->currentFloor)
+	if (elevator->nextStop < elevator->currentFloor)
 	{
 		elevator->currentFloor--;
 	}
-	else if(elevator->nextStop > elevator->currentFloor)
+	else if (elevator->nextStop > elevator->currentFloor)
 	{
 		elevator->currentFloor++;
 	}
 }
 
-static void stopElevator(struct building_s * building)
+static void stopElevator(struct building_s* building)
 {
 	//Let out anyone who needs to get off
-	for(int8_t i = 0; i < ELEVATOR_MAX_CAPACITY; i++)
+	for (int8_t i = 0; i < ELEVATOR_MAX_CAPACITY; i++)
 	{
-		if(building->elevator.passengers[i] == building->elevator.currentFloor) 
+		if (building->elevator.passengers[i] == building->elevator.currentFloor)
 		{
 			building->floors[building->elevator.currentFloor].arrivals++;
 			building->elevator.passengers[i] = -1;
@@ -191,13 +267,13 @@ static void stopElevator(struct building_s * building)
 	}
 
 	//Let in anyone who needs to get on, but only if capacity allows
-	for(int8_t i = 0; i < ELEVATOR_MAX_CAPACITY; i++)
+	for (int8_t i = 0; i < ELEVATOR_MAX_CAPACITY; i++)
 	{
-		if(building->elevator.passengers[i] == -1) 
+		if (building->elevator.passengers[i] == -1)
 		{
-			for(int8_t j = 0; j < 2; j++)
+			for (int8_t j = 0; j < 2; j++)
 			{
-				if(building->floors[building->elevator.currentFloor].departures[j] != -1)
+				if (building->floors[building->elevator.currentFloor].departures[j] != -1)
 				{
 					building->elevator.passengers[i] = building->floors[building->elevator.currentFloor].departures[j];
 					building->floors[building->elevator.currentFloor].departures[j] = -1;
@@ -212,9 +288,9 @@ static void drawBuilding(struct building_s building, int8_t doorStatus)
 {
 	printf("          DEPARTURES|     |ARRIVALS\n");
 
-	for(int8_t f = 0; f < BUILDING_HEIGHT; f++)
+	for (int8_t f = 0; f < BUILDING_HEIGHT; f++)
 	{
-		drawFloor(building.floors[f],f,building.elevator,doorStatus);
+		drawFloor(building.floors[f], f, building.elevator, doorStatus);
 	}
 }
 
@@ -222,17 +298,17 @@ static void drawFloor(struct floor_s floor, int8_t floorNumber, struct elevator_
 {
 
 	printf("FLOOR %i:          ", floorNumber);
-	
-	for(int8_t i = 0; i < 2; i++)
+
+	for (int8_t i = 0; i < 2; i++)
 	{
-		if(floor.departures[i] == -1){ printf(" "); }
-		else{ printf("%i",floor.departures[i]); }
+		if (floor.departures[i] == -1) { printf(" "); }
+		else { printf("%i", floor.departures[i]); }
 	}
 
-	if(elevator.currentFloor == floorNumber){ drawElevator(elevator, doorStatus); }
-	else{printf("|     |"); }
+	if (elevator.currentFloor == floorNumber) { drawElevator(elevator, doorStatus); }
+	else { printf("|     |"); }
 
-	for(int8_t i = 0; i < floor.arrivals; i++)
+	for (int8_t i = 0; i < floor.arrivals; i++)
 	{
 		printf("x");
 	}
@@ -242,24 +318,24 @@ static void drawFloor(struct floor_s floor, int8_t floorNumber, struct elevator_
 
 static void drawElevator(struct elevator_s elevator, int8_t doorStatus)
 {
-	if(doorStatus == 1){ printf("| "); }
-	else{ printf("  "); }
+	if (doorStatus == 1) { printf("| "); }
+	else { printf("  "); }
 
-	for(int8_t i = 0; i < ELEVATOR_MAX_CAPACITY; i++)
+	for (int8_t i = 0; i < ELEVATOR_MAX_CAPACITY; i++)
 	{
-		if(elevator.passengers[i] == -1){ printf("_"); }
-		else{ printf("%i",elevator.passengers[i]); }
+		if (elevator.passengers[i] == -1) { printf("_"); }
+		else { printf("%i", elevator.passengers[i]); }
 	}
 
-	if(doorStatus == 1){ printf(" |"); }
-	else{ printf("  "); }
+	if (doorStatus == 1) { printf(" |"); }
+	else { printf("  "); }
 }
 
 static void delay(int16_t ms)
 {
-    //Storing start time
-    clock_t startTime = clock();
- 
-    //Looping till required time is not achieved
-    while(clock() < startTime + ms);
+	//Storing start time
+	clock_t startTime = clock();
+
+	//Looping till required time is not achieved
+	while (clock() < startTime + ms);
 }

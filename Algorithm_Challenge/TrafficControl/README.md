@@ -35,7 +35,9 @@ Candidate Action Items:
   above two functions, please do not edit the code that's already in the files, unless you are extremely certain that 
   there's a bug in the code.
 - Briefly describe your implementation (1-3 sentences).
-  - ADD YOUR ANSWER HERE
+  - High level: Code adjusts the light durations based on "real-time" traffic data in a data-driven adaptive control kind of way; this is done in the calculateGreenDuration function
+  - Mid level: Finite state machine controls light change between vertical and horizontal; done in setHorizantalTrafficLight/setVerticalTrafficLight functions using a global variable
+  - Low level: The timer makes sure that there are no collisions. And other aspects run by different parts of code; also done in setHorizantalTrafficLight/setVerticalTrafficLight functions
 
 Don't forget; we are interested in both your solution and your thought process.
 

@@ -39,7 +39,9 @@ Candidate Action Items:
   above function, please do not edit the code that's already in the files, unless you are extremely certain that 
   there's a bug in the code.
 - Briefly describe your implementation (1-3 sentences).
-  - ADD YOUR ANSWER HERE
+  - Use SCAN method to find eligible floor to stop
+  - Skips floors when the elevator is full or when a floor is empty/not requested
+  - Uses conditional statements to achieve solution. Simulates in each direction then decides to avoid getting stuck at the top and bottom floor
 
 Don't forget; we are interested in both your solution and your thought process.
 

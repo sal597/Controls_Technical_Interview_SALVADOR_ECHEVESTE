@@ -39,9 +39,12 @@ Candidate Action Items:
 - Make any other improvements to the code as you see fit
 - Answer the following questions:
   - What would you tell the junior engineer about ways that they could improve their code in the future? (1-3 sentences)
-    - ADD YOUR ANSWER HERE
+    - Make sure to define enum early in the .c file or in the .h file. 
+    - There was a copy paste error in checkForCrashes function
+    - Case structure seemed to have needed breaks.
   - How else would you change this code to make it better so you can build on it in the future?(1-10 sentences).
-    - ADD YOUR ANSWER HERE
+    - Improve code by optimizing to minimize wait time (can be done several ways but maybe taking into account the traffic trend and creating a time based finite state machine that is adaptable might be one way)
+    - There might be a better way of utilizing a timer for this code
 
 Don't forget; we are interested in both your solution and your thought process.
 

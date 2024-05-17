@@ -2,10 +2,10 @@
 	[Project] Controls Technical Interview
 *****************************************************************************
 	[Lead developer] Rachel Harris, rharris at dephy dot com.
-	[Contributors] 
+	[Contributors]
 *****************************************************************************
-	[This file] traffic_light_problem: Changes the traffic light colors to 
-	move cars through an intersection while minimizing wait time at red lights. 
+	[This file] traffic_light_problem: Changes the traffic light colors to
+	move cars through an intersection while minimizing wait time at red lights.
 ****************************************************************************
 	[Created] 2022-11-04 | rharris | Initial creation
 ****************************************************************************/
@@ -28,16 +28,22 @@ struct intersection_s myIntersection;
 // Private Function Prototype(s):
 //****************************************************************************
 static void initIntersection(void);
-static char * setHorizantalTrafficLight(struct intersection_s intersection);
-static char * setVerticalTrafficLight(struct intersection_s intersection);
-static void advanceLane(char * trafficColor, struct lane_of_cars_s * lane);
+static char* setHorizantalTrafficLight(struct intersection_s intersection);
+static char* setVerticalTrafficLight(struct intersection_s intersection);
+static void advanceLane(char* trafficColor, struct lane_of_cars_s* lane);
 static void drawIntersection(struct intersection_s intersection);
-static void drawUpperVerticalRoad(char * trafficColor, struct lane_of_cars_s northboundCars, struct lane_of_cars_s southboundCars);
-static void drawLowerVerticalRoad(char * trafficColor, struct lane_of_cars_s northboundCars, struct lane_of_cars_s southboundCars);
-static void drawWestboundLane(char * trafficColor, struct lane_of_cars_s westboundCars);
-static void drawEastboundLane(char * trafficColor, struct lane_of_cars_s eastboundCars);
+static void drawUpperVerticalRoad(char* trafficColor, struct lane_of_cars_s northboundCars, struct lane_of_cars_s southboundCars);
+static void drawLowerVerticalRoad(char* trafficColor, struct lane_of_cars_s northboundCars, struct lane_of_cars_s southboundCars);
+static void drawWestboundLane(char* trafficColor, struct lane_of_cars_s westboundCars);
+static void drawEastboundLane(char* trafficColor, struct lane_of_cars_s eastboundCars);
 static void delay(int16_t ms);
 static int8_t checkForCrashes(void);
+
+typedef enum {
+	RED,
+	GREEN,
+	YELLOW
+} traffic_light_colors_t;
 
 //****************************************************************************
 // Public function(s):
@@ -53,7 +59,7 @@ void main(void)
 	initIntersection();
 
 	//Run traffic through the intersection for a set period of time
-	for(int8_t i = 0; i < 120; i++)
+	for (int8_t i = 0; i < 120; i++)
 	{
 		//Update the traffic lights
 		myIntersection.horizantalTrafficColor = setHorizantalTrafficLight(myIntersection);
@@ -72,14 +78,14 @@ void main(void)
 		delay(1000);
 
 		//Check to make sure no cars have crashed
-		if(checkForCrashes() == 1)
+		if (checkForCrashes() == 1)
 		{
 			printf("FAIL: Car crash!\n");
 			return;
 		}
 
 		//Check if all the cars have left the lanes
-		if(myIntersection.northboundCars.carsThatHaveLeft == 10 && myIntersection.southboundCars.carsThatHaveLeft == 10 && myIntersection.westboundCars.carsThatHaveLeft == 10 && myIntersection.eastboundCars.carsThatHaveLeft == 10)
+		if (myIntersection.northboundCars.carsThatHaveLeft == 10 && myIntersection.southboundCars.carsThatHaveLeft == 10 && myIntersection.westboundCars.carsThatHaveLeft == 10 && myIntersection.eastboundCars.carsThatHaveLeft == 10)
 		{
 			int16_t totalWaitTime = myIntersection.northboundCars.timeWaiting + myIntersection.southboundCars.timeWaiting + myIntersection.westboundCars.timeWaiting + myIntersection.eastboundCars.timeWaiting;
 			printf("SUCCESS: You got all the cars through! The total wait time was: %i seconds!\n", totalWaitTime);
@@ -108,147 +114,148 @@ static void initIntersection(void)
 	myIntersection.southboundCars.popularity = 4;
 }
 
-static char * setHorizantalTrafficLight(struct intersection_s intersection)
+static char* setHorizantalTrafficLight(struct intersection_s intersection)
 {
 	static int8_t t = 0;
-	char * currentColor = intersection.horizantalTrafficColor;
-	char * newColor = currentColor;
+	char* currentColor = intersection.horizantalTrafficColor;
+	char* newColor = currentColor;
 	traffic_light_colors_t currentColorEnum = -1;
 
-	if(strcmp(currentColor,"R") == 0)
+	if (strcmp(currentColor, "R") == 0)
 	{
 		currentColorEnum = RED;
 	}
-	else if(strcmp(currentColor,"G") == 0)
+	else if (strcmp(currentColor, "G") == 0)
 	{
 		currentColorEnum = GREEN;
 
-		if(strcmp(currentColor,"Y") == 0)
+		if (strcmp(currentColor, "Y") == 0)
 		{
 			currentColorEnum = YELLOW;
 		}
 	}
 
 	t++;
-	switch(currentColorEnum)
+	switch (currentColorEnum)
 	{
-		case RED:
-			if((intersection.eastboundCars.carsWaitingAtIntersection + intersection.westboundCars.carsWaitingAtIntersection >= intersection.northboundCars.carsWaitingAtIntersection + intersection.southboundCars.carsWaitingAtIntersection) && (strcmp(intersection.verticalTrafficColor,"R") == 0))
-			{
-				newColor = "G";
-				t = 0;
-			}
-
-		case GREEN:
-			if((intersection.eastboundCars.carsWaitingAtIntersection + intersection.westboundCars.carsWaitingAtIntersection < intersection.northboundCars.carsWaitingAtIntersection + intersection.southboundCars.carsWaitingAtIntersection) || t > 10)
-			{
-				newColor = "Y";
-				t = 0;
-			}
-
-		case YELLOW:
-			if(t > 1)
-			{
-				newColor = "R";
-				t = 0;
-			}
-
-		default:
+	case RED:
+		if ((intersection.eastboundCars.carsWaitingAtIntersection + intersection.westboundCars.carsWaitingAtIntersection >= intersection.northboundCars.carsWaitingAtIntersection + intersection.southboundCars.carsWaitingAtIntersection) && (strcmp(intersection.verticalTrafficColor, "R") == 0))
+		{
+			newColor = "G";
+			t = 0;
+		}
+		break;
+	case GREEN:
+		if ((intersection.eastboundCars.carsWaitingAtIntersection + intersection.westboundCars.carsWaitingAtIntersection < intersection.northboundCars.carsWaitingAtIntersection + intersection.southboundCars.carsWaitingAtIntersection) || t > 10)
+		{
+			newColor = "Y";
+			t = 0;
+		}
+		break;
+	case YELLOW:
+		if (t > 1)
+		{
 			newColor = "R";
-			t = 0;	
+			t = 0;
+		}
+		break;
+	default:
+		newColor = "R";
+		t = 0;
+		break;
 	}
 
 	return newColor;
 }
 
-static char * setVerticalTrafficLight(struct intersection_s intersection)
+static char* setVerticalTrafficLight(struct intersection_s intersection)
 {
 	static int8_t t = 0;
-	char * currentColor = intersection.verticalTrafficColor;
-	char * newColor = currentColor;
+	char* currentColor = intersection.verticalTrafficColor;
+	char* newColor = currentColor;
 	traffic_light_colors_t currentColorEnum = -1;
 
-	if(strcmp(currentColor,"R") == 0)
+	if (strcmp(currentColor, "R") == 0)
 	{
 		currentColorEnum = RED;
 
-		if(strcmp(currentColor,"G") == 0)
-		{	
+		if (strcmp(currentColor, "G") == 0)
+		{
 			currentColorEnum = GREEN;
 		}
 	}
-	else if(strcmp(currentColor,"Y") == 0)
+	else if (strcmp(currentColor, "Y") == 0)
 	{
 		currentColorEnum = YELLOW;
 	}
 
 	t++;
-	switch(currentColorEnum)
+	switch (currentColorEnum)
 	{
-		case RED:
-			if((intersection.eastboundCars.carsWaitingAtIntersection + intersection.westboundCars.carsWaitingAtIntersection < intersection.northboundCars.carsWaitingAtIntersection + intersection.southboundCars.carsWaitingAtIntersection) && (strcmp(intersection.horizantalTrafficColor,"R") == 0))
-			{
-				newColor = "G";
-				t = 0;
-			}
-			break;
+	case RED:
+		if ((intersection.eastboundCars.carsWaitingAtIntersection + intersection.westboundCars.carsWaitingAtIntersection < intersection.northboundCars.carsWaitingAtIntersection + intersection.southboundCars.carsWaitingAtIntersection) && (strcmp(intersection.horizantalTrafficColor, "R") == 0))
+		{
+			newColor = "G";
+			t = 0;
+		}
+		break;
 
-		case GREEN:
-			if((intersection.eastboundCars.carsWaitingAtIntersection + intersection.westboundCars.carsWaitingAtIntersection >= intersection.northboundCars.carsWaitingAtIntersection + intersection.southboundCars.carsWaitingAtIntersection) || t > 10)
-			{
-				newColor = "Y";
-				t = 0;
-			}
-			break;
+	case GREEN:
+		if ((intersection.eastboundCars.carsWaitingAtIntersection + intersection.westboundCars.carsWaitingAtIntersection >= intersection.northboundCars.carsWaitingAtIntersection + intersection.southboundCars.carsWaitingAtIntersection) || t > 10)
+		{
+			newColor = "Y";
+			t = 0;
+		}
+		break;
 
-		case YELLOW:
-			if(t > 1)
-			{
-				newColor = "R";
-				t = 0;
-			}
-			break;
-
-		default:
+	case YELLOW:
+		if (t > 1)
+		{
 			newColor = "R";
 			t = 0;
-			break;	
+		}
+		break;
+
+	default:
+		newColor = "R";
+		t = 0;
+		break;
 	}
 
 	return newColor;
 }
 
-static void advanceLane(char * trafficColor, struct lane_of_cars_s * lane)
+static void advanceLane(char* trafficColor, struct lane_of_cars_s* lane)
 {
 	//Move any cars on the leaving side of the intersection into oblivion
 	//but mark them in the total lane count
-	if(lane->carsLeavingIntersection > 0)
+	if (lane->carsLeavingIntersection > 0)
 	{
 		lane->carsLeavingIntersection--;
 		lane->carsThatHaveLeft++;
 	}
 
 	//Move any cars in the intersection to the leaving side of the intersection
-	if(lane->carsInIntersection > 0)
+	if (lane->carsInIntersection > 0)
 	{
 		lane->carsInIntersection--;
 		lane->carsLeavingIntersection++;
 	}
 
 	//Move a waiting car into the intersection if possible
-	if((strcmp(trafficColor, "G") == 0) && (lane->carsWaitingAtIntersection > 0))
+	if ((strcmp(trafficColor, "G") == 0) && (lane->carsWaitingAtIntersection > 0))
 	{
 		lane->carsWaitingAtIntersection--;
 		lane->carsInIntersection++;
 	}
 
 	//Add cars to the lane randomly (but not more than 10 cars can ever be added to the lane ever)
-	if(lane->carsWaitingAtIntersection + lane->carsInIntersection + lane->carsLeavingIntersection + lane->carsThatHaveLeft < 10)
+	if (lane->carsWaitingAtIntersection + lane->carsInIntersection + lane->carsLeavingIntersection + lane->carsThatHaveLeft < 10)
 	{
 		int addCarToLane = rand();
-		if((addCarToLane % lane->popularity) == 0)
+		if ((addCarToLane % lane->popularity) == 0)
 		{
-			lane->carsWaitingAtIntersection++;	
+			lane->carsWaitingAtIntersection++;
 		}
 	}
 
@@ -258,43 +265,43 @@ static void advanceLane(char * trafficColor, struct lane_of_cars_s * lane)
 
 static void drawIntersection(struct intersection_s intersection)
 {
-	drawUpperVerticalRoad(intersection.verticalTrafficColor,intersection.northboundCars,intersection.southboundCars);
-	drawWestboundLane(intersection.horizantalTrafficColor,intersection.westboundCars);
+	drawUpperVerticalRoad(intersection.verticalTrafficColor, intersection.northboundCars, intersection.southboundCars);
+	drawWestboundLane(intersection.horizantalTrafficColor, intersection.westboundCars);
 	printf("----------          ---------- \n");
-	drawEastboundLane(intersection.horizantalTrafficColor,intersection.eastboundCars);
-	drawLowerVerticalRoad(intersection.verticalTrafficColor,intersection.northboundCars,intersection.southboundCars);
+	drawEastboundLane(intersection.horizantalTrafficColor, intersection.eastboundCars);
+	drawLowerVerticalRoad(intersection.verticalTrafficColor, intersection.northboundCars, intersection.southboundCars);
 }
 
-static void drawUpperVerticalRoad(char * trafficColor, struct lane_of_cars_s northboundCars, struct lane_of_cars_s southboundCars)
+static void drawUpperVerticalRoad(char* trafficColor, struct lane_of_cars_s northboundCars, struct lane_of_cars_s southboundCars)
 {
-	char * southboundCarPlaceholder;
+	char* southboundCarPlaceholder;
 
 	//Show southbound cars waiting at the intersection and northbound cars leaving the intersection
-	for(int8_t i = 0; i < 10; i++)
+	for (int8_t i = 0; i < 10; i++)
 	{
-		if(i >= 10 - southboundCars.carsWaitingAtIntersection)
+		if (i >= 10 - southboundCars.carsWaitingAtIntersection)
 		{
-			southboundCarPlaceholder  = "+";
+			southboundCarPlaceholder = "+";
 		}
-		else{southboundCarPlaceholder  = " ";}
+		else { southboundCarPlaceholder = " "; }
 
-		if(i == 9)
+		if (i == 9)
 		{
-			printf("          |  %s ! %s |          \n",southboundCarPlaceholder,trafficColor);
+			printf("          |  %s ! %s |          \n", southboundCarPlaceholder, trafficColor);
 		}
 		else if (i == 5)
 		{
-			if(northboundCars.carsLeavingIntersection > 0)
+			if (northboundCars.carsLeavingIntersection > 0)
 			{
-				printf("          |  %s ! + |          \n",southboundCarPlaceholder);
+				printf("          |  %s ! + |          \n", southboundCarPlaceholder);
 			}
-			else{printf("          |  %s !   |          \n",southboundCarPlaceholder);}
+			else { printf("          |  %s !   |          \n", southboundCarPlaceholder); }
 		}
-		else{printf("          |  %s !   |          \n",southboundCarPlaceholder);}
+		else { printf("          |  %s !   |          \n", southboundCarPlaceholder); }
 	}
 
 	//Show cars in the middle of the intersection
-	if(southboundCars.carsInIntersection > 0)
+	if (southboundCars.carsInIntersection > 0)
 	{
 		printf("__________   X      __________ \n");
 	}
@@ -304,12 +311,12 @@ static void drawUpperVerticalRoad(char * trafficColor, struct lane_of_cars_s nor
 	}
 }
 
-static void drawLowerVerticalRoad(char * trafficColor, struct lane_of_cars_s northboundCars, struct lane_of_cars_s southboundCars)
+static void drawLowerVerticalRoad(char* trafficColor, struct lane_of_cars_s northboundCars, struct lane_of_cars_s southboundCars)
 {
-	char * northboundCarPlaceholder;
+	char* northboundCarPlaceholder;
 
 	//Show cars in the middle of the intersection
-	if(northboundCars.carsInIntersection > 0)
+	if (northboundCars.carsInIntersection > 0)
 	{
 		printf("__________       X  __________ \n");
 	}
@@ -319,36 +326,36 @@ static void drawLowerVerticalRoad(char * trafficColor, struct lane_of_cars_s nor
 	}
 
 	//Show northbound cars waiting at the intersection and southbound cars leaving the intersection
-	for(int8_t i = 0; i < 10; i++)
+	for (int8_t i = 0; i < 10; i++)
 	{
-		if(i < northboundCars.carsWaitingAtIntersection)
+		if (i < northboundCars.carsWaitingAtIntersection)
 		{
-			northboundCarPlaceholder  = "+";
+			northboundCarPlaceholder = "+";
 		}
-		else{northboundCarPlaceholder  = " ";}
+		else { northboundCarPlaceholder = " "; }
 
-		if(i == 0)
+		if (i == 0)
 		{
-			printf("          |  %s ! %s |          \n",trafficColor,northboundCarPlaceholder);
+			printf("          |  %s ! %s |          \n", trafficColor, northboundCarPlaceholder);
 		}
 		else if (i == 5)
 		{
-			if(southboundCars.carsLeavingIntersection > 0)
+			if (southboundCars.carsLeavingIntersection > 0)
 			{
-				printf("          |  + ! %s |          \n",northboundCarPlaceholder);
+				printf("          |  + ! %s |          \n", northboundCarPlaceholder);
 			}
-			else{printf("          |    ! %s |          \n",northboundCarPlaceholder);}
+			else { printf("          |    ! %s |          \n", northboundCarPlaceholder); }
 		}
-		else{printf("          |    ! %s |          \n",northboundCarPlaceholder);}
+		else { printf("          |    ! %s |          \n", northboundCarPlaceholder); }
 	}
 }
 
-static void drawWestboundLane(char * trafficColor, struct lane_of_cars_s westboundCars)
+static void drawWestboundLane(char* trafficColor, struct lane_of_cars_s westboundCars)
 {
 	//Show cars moving away from the intersection
 	//Note: Because we don't really care about these cars, I will only display one of them
 	//even if there is more than one car moving away from the intersection
-	if(westboundCars.carsLeavingIntersection > 0)
+	if (westboundCars.carsLeavingIntersection > 0)
 	{
 		printf("    +    %s", trafficColor);
 	}
@@ -358,7 +365,7 @@ static void drawWestboundLane(char * trafficColor, struct lane_of_cars_s westbou
 	}
 
 	//Show cars in the middle of the intersection
-	if(westboundCars.carsInIntersection > 0)
+	if (westboundCars.carsInIntersection > 0)
 	{
 		printf("       X  ");
 	}
@@ -368,32 +375,32 @@ static void drawWestboundLane(char * trafficColor, struct lane_of_cars_s westbou
 	}
 
 	//Show cars waiting at the intersection
-	for(int8_t i = 0; i < 10; i++)
+	for (int8_t i = 0; i < 10; i++)
 	{
-		if(i < westboundCars.carsWaitingAtIntersection)
+		if (i < westboundCars.carsWaitingAtIntersection)
 		{
 			printf("+");
 		}
-		else{printf(" ");}
+		else { printf(" "); }
 	}
 	printf("\n");
 }
 
-static void drawEastboundLane(char * trafficColor, struct lane_of_cars_s eastboundCars)
+static void drawEastboundLane(char* trafficColor, struct lane_of_cars_s eastboundCars)
 {
 
 	//Show cars waiting at the intersection
-	for(int8_t i = 0; i < 10; i++)
+	for (int8_t i = 0; i < 10; i++)
 	{
-		if(i >= 10 - eastboundCars.carsWaitingAtIntersection)
+		if (i >= 10 - eastboundCars.carsWaitingAtIntersection)
 		{
 			printf("+");
 		}
-		else{printf(" ");}
+		else { printf(" "); }
 	}
 
 	//Show cars in the middle of the intersection
-	if(eastboundCars.carsInIntersection > 0)
+	if (eastboundCars.carsInIntersection > 0)
 	{
 		printf("  X       ");
 	}
@@ -405,7 +412,7 @@ static void drawEastboundLane(char * trafficColor, struct lane_of_cars_s eastbou
 	//Show cars moving away from the intersection
 	//Note: Because we don't really care about these cars, I will only display one of them
 	//even if there is more than one car moving away from the intersection
-	if(eastboundCars.carsLeavingIntersection > 0)
+	if (eastboundCars.carsLeavingIntersection > 0)
 	{
 		printf("%s   +     \n", trafficColor);
 	}
@@ -417,16 +424,17 @@ static void drawEastboundLane(char * trafficColor, struct lane_of_cars_s eastbou
 
 static void delay(int16_t ms)
 {
-    clock_t startTime = clock();
- 
-    while(clock() < startTime + ms);
+	clock_t startTime = clock();
+
+	while (clock() < startTime + ms);
 }
+
 
 static int8_t checkForCrashes(void)
 {
-	int8_t isHorizantalCarInIntersection = (myIntersection.westboundCars.carsInIntersection | myIntersection.eastboundCars.carsInIntersection);
-	int8_t isVerticalCarInIntersection = (myIntersection.westboundCars.carsInIntersection | myIntersection.eastboundCars.carsInIntersection);
+	int8_t isHorizontalCarInIntersection = (myIntersection.eastboundCars.carsInIntersection > 0 || myIntersection.westboundCars.carsInIntersection > 0);
+	int8_t isVerticalCarInIntersection = (myIntersection.northboundCars.carsInIntersection > 0 || myIntersection.southboundCars.carsInIntersection > 0);
 
-	if(isHorizantalCarInIntersection && isVerticalCarInIntersection){return 1;}
+	if (isHorizontalCarInIntersection && isVerticalCarInIntersection) { return 1; }
 	return 0;
 }
